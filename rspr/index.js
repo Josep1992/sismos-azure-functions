@@ -1,9 +1,20 @@
 const fetch = require("isomorphic-unfetch");
 const regions = require("../utils/regions");
 
-const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt'
+const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
+const GOOGLE_MAPS_EMBED_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
 
-function createDataPoint(point){
+function map({latitude,longitude}){
+    const url = [
+        `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_EMBED_API_KEY}`,
+        `&center=${longitude},${latitude}`,
+        `&q=${longitude},${latitude}`,
+        `&zoom=7`
+    ];
+    return url.join("");
+}
+
+function earthquake(point) {
     let [
         id, magnitude, ,
         source, date, time, latitude,
@@ -20,37 +31,43 @@ function createDataPoint(point){
             coords: {
                 latitude,
                 longitude,
+                depth,
             },
-            depth,
-            region: !regions[code] ? null : regions[code]["name"]
+            region: !regions[code] ? null : regions[code]["name"],
+            // authorize api
+            map: map({latitude,longitude})
         };
     }
 }
 
 module.exports = async function (context, req) {
-    let body = {
-        data: { attributes: { rspr: [] } },
-        error: null,
+    let res = {
+        status: 200,
+        body: {
+            data: { attributes: { rspr: { items: [], length: 0} } },
+            error: null,
+        }
     };
 
     if (req.method === "GET") {
         try {
-            let response = await fetch(RSPR_ENDPOINT);
-            let datasets = await response.text();
+            let http = await fetch(RSPR_ENDPOINT);
+            let datasets = await http.text();
 
             if (datasets) {
-                let rspr = datasets.trim().split("\n").map(createDataPoint);
-                body.data.attributes.rspr = rspr;
+                let rspr = datasets.trim().split("\n").map(earthquake);
+                res.body.data.attributes.rspr = {
+                    items: rspr,
+                    length: rspr.length
+                };
             }
 
         } catch (error) {
             // do some error logging here
-            body.error = error;
+            res.body.error = error.message;
+            res.body.status = 500;
         }
     }
 
-    context.res = {
-        // status: 200, /* Defaults to 200 */
-        body
-    };
+    context.res = res;
 }
