@@ -1,19 +1,10 @@
 const fetch = require("isomorphic-unfetch");
 const regions = require("../utils/regions");
-const Logger = require("../lib/index");
+const Logger = require("../infra/logger");
+const map = require("../common/map")
 
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
-const GOOGLE_MAPS_EMBED_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
-
-function map({ latitude, longitude }) {
-    const url = [
-        `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_EMBED_API_KEY}`,
-        `&center=${longitude},${latitude}`,
-        `&q=${longitude},${latitude}`,
-        `&zoom=7`
-    ];
-    return url.join("");
-}
+const GOOGLE_MAPS_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
 
 function earthquake(point) {
     let [
@@ -36,7 +27,7 @@ function earthquake(point) {
             },
             region: !regions[code] ? null : regions[code]["name"],
             // authorize api
-            map: map({ latitude, longitude })
+            map: map({ latitude, longitude, GOOGLE_MAPS_API_KEY })
         };
     }
 }
