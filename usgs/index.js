@@ -10,48 +10,6 @@ const USGS_ENDPOINT = (endpoint) => (
   `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${endpoint}.geojson?minlongitude=15&maxlongitude=20`
 );
 
-//USGS data structure
-// {
-//   "type": "Feature",
-//   "properties": {
-//     "mag": 1.24,
-//     "place": "16km NNW of Westmorland, CA",
-//     "time": 1624503048230,
-//     "updated": 1624503264447,
-//     "tz": null,
-//     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/ci39717031",
-//     "detail": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/ci39717031.geojson",
-//     "felt": null,
-//     "cdi": null,
-//     "mmi": null,
-//     "alert": null,
-//     "status": "automatic",
-//     "tsunami": 0,
-//     "sig": 24,
-//     "net": "ci",
-//     "code": "39717031",
-//     "ids": ",ci39717031,",
-//     "sources": ",ci,",
-//     "types": ",nearby-cities,origin,phase-data,scitech-link,",
-//     "nst": 15,
-//     "dmin": 0.04,
-//     "rms": 0.19,
-//     "gap": 151,
-//     "magType": "ml",
-//     "type": "earthquake",
-//     "title": "M 1.2 - 16km NNW of Westmorland, CA"
-//   },
-//   "geometry": {
-//     "type": "Point",
-//     "coordinates": [
-//       -115.6845,
-//       33.1666667,
-//       9.58
-//     ]
-//   },
-//   "id": "ci39717031"
-// },
-
 function toPuertoRicoOnly(feature) {
   let regex = /puerto rico/gi;
   return (
