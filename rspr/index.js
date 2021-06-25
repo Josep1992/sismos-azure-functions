@@ -2,7 +2,6 @@ const fetch = require("isomorphic-unfetch");
 const moment = require("moment")
 
 const Logger = require("../infra/logger");
-const map = require("../common/map")
 const earthquake = require("../common/earthquake")
 
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
