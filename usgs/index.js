@@ -1,13 +1,14 @@
 const fetch = require("isomorphic-unfetch");
+const moment = require("moment")
+
 const Logger = require("../infra/logger");
-const map = require("../common/map");
+const earthquake = require("../common/earthquake")
 
 // all_day, all_month, all_week
 // have to implement this endpoints on the rspr azure function
 const USGS_ENDPOINT = (endpoint) => (
   `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${endpoint}.geojson?minlongitude=15&maxlongitude=20`
 );
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
 
 //USGS data structure
 // {
@@ -51,39 +52,17 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
 //   "id": "ci39717031"
 // },
 
-
-
-function earthquake(feature) {
-  let { properties: { mag, time, place, updated }, geometry, id } = feature;
-  let [latitude, longitude, depth] = geometry;
-
-  return {
-    id,
-    magnitude: mag,
-    source: place.toLowerCase(),
-    created_at: new Date(time),
-    updated_at: new Date(updated),
-    time,
-    coords: {
-      latitude,
-      longitude,
-      depth,
-    },
-    region: null,
-    // authorize api
-    map: map({ latitude, longitude, GOOGLE_MAPS_API_KEY })
-  };
-}
-
-function puertoRicoOnly(feature) {
+function toPuertoRicoOnly(feature) {
+  let regex = /puerto rico/gi;
   return (
-    feature.properties.place.includes("Puerto Rico") &&
+    regex.test(feature.properties.place) &&
     feature.properties.mag !== 0
   )
 }
 
 module.exports = async function (context, req) {
   const logger = new Logger(context);
+  let locale = req.headers.locale || 'en-us';
 
   logger.event("initialize", "starting rspr function");
 
@@ -102,15 +81,17 @@ module.exports = async function (context, req) {
       let request = await fetch(USGS_ENDPOINT("all_month"));
       let json = await request.json();
 
-      if (json.metadata.status === 500 || response.metadata.status === 404) {
+      if (json.metadata.status === 500 || json.metadata.status === 404) {
         throw new Error("Server error") // placeholder
       }
 
       logger.event("generate", "creating usgs payload");
 
-      let usgs = data.features.filter(puertoRicoOnly).map(earthquake);
+      let usgs = json.features.filter(toPuertoRicoOnly).map((feature) => (
+        earthquake('usgs',feature)
+      ));
 
-      usgs.body.data.attributes.usgs = {
+      res.body.data.attributes.usgs = {
         items: usgs,
         length: usgs.length
       };

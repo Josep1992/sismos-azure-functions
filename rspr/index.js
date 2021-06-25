@@ -1,39 +1,15 @@
 const fetch = require("isomorphic-unfetch");
-const regions = require("../utils/regions");
+const moment = require("moment")
+
 const Logger = require("../infra/logger");
 const map = require("../common/map")
+const earthquake = require("../common/earthquake")
 
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
-
-function earthquake(point) {
-    let [
-        id, magnitude, ,
-        source, date, time, latitude,
-        longitude, depth, , code
-    ] = point.split(" ");
-
-    if (id) {
-        return {
-            id,
-            magnitude,
-            source: source.toLowerCase(),
-            created_at: new Date(date),
-            time,
-            coords: {
-                latitude,
-                longitude,
-                depth,
-            },
-            region: !regions[code] ? null : regions[code]["name"],
-            // authorize api
-            map: map({ latitude, longitude, GOOGLE_MAPS_API_KEY })
-        };
-    }
-}
 
 module.exports = async function (context, req) {
     const logger = new Logger(context);
+    let locale = req.headers.locale || 'en-us';
 
     logger.event("initialize", "starting rspr function");
 
@@ -49,13 +25,15 @@ module.exports = async function (context, req) {
         try {
             logger.event("request", "getting rspr data");
 
-            let http = await fetch(RSPR_ENDPOINT);
-            let datasets = await http.text();
+            let request = await fetch(RSPR_ENDPOINT);
+            let datasets = await request.text();
 
             if (datasets) {
                 logger.event("generate", "creating rspr payload");
 
-                let rspr = datasets.trim().split("\n").map(earthquake);
+                let rspr = datasets.trim().split("\n").map((feature) => (
+                    earthquake('rspr',feature)
+                ));
                 res.body.data.attributes.rspr = {
                     items: rspr,
                     length: rspr.length
