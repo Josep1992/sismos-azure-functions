@@ -2,10 +2,8 @@ const moment = require("moment");
 const regions = require("../fixtures/regions");
 const map = require("./map");
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCLHcH6_I0oUWlE3XAiXw2sPAKdbhbzqBc';
-
-module.exports = function earthquake(source,data){
-  if(source === 'rspr'){
+module.exports = function earthquake(source, data) {
+  if (source === 'rspr') {
     let [
       id, magnitude, ,
       source, date, time, latitude,
@@ -27,7 +25,7 @@ module.exports = function earthquake(source,data){
         },                             // index 0 = en index 1 = es
         place: !regions[code] ? null : regions[code]["name"][0],
         // authorize api
-        map: map({ latitude, longitude, GOOGLE_MAPS_API_KEY })
+        map: map({ latitude, longitude })
       };
     }
   }
@@ -50,7 +48,7 @@ module.exports = function earthquake(source,data){
     },
     place,
     // authorize api
-    map: map({ latitude, longitude, GOOGLE_MAPS_API_KEY })
+    map: map({ latitude, longitude })
   };
 
 }
