@@ -14,13 +14,13 @@ module.exports = function earthquake(source, data) {
       return {
         id,
         magnitude: Number(magnitude),
-        source: source.toLowerCase(),
+        agency: source.toLowerCase(),
         created_at: moment(date).format(),
         time: moment(time, 'HH:mm:ss').format(),
         tsunami: null,
         coords: {
-          latitude,
-          longitude,
+          latitude: Number(latitude),
+          longitude: Number(longitude),
           depth,
         },                             // index 0 = en index 1 = es
         place: !regions[code] ? null : regions[code]["name"][0],
@@ -36,7 +36,7 @@ module.exports = function earthquake(source, data) {
   return {
     id,
     magnitude: mag,
-    source: 'usgs',
+    agency: 'usgs',
     created_at: moment(time).format(),
     updated_at: moment(updated).format(),
     time: moment(time).format(),

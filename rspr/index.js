@@ -2,9 +2,12 @@ const fetch = require("isomorphic-unfetch");
 const moment = require("moment")
 
 const Logger = require("../infra/logger");
-const earthquake = require("../common/earthquake")
+const earthquake = require("../common/earthquake");
 
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
+
+// id:earthquake endpoint
+// http://redsismica.uprm.edu/English/Informe_Sismo/myinfoGeneral.php?id=20210627025712&lat=17.9448&lon=-67.1053&prof=11&mag=3.20_Md
 
 module.exports = async function (context, req) {
     const logger = new Logger(context);

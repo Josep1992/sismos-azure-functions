@@ -11,16 +11,18 @@ const USGS_ENDPOINT = (endpoint) => (
 );
 
 function toPuertoRicoOnly(feature) {
-  let regex = /puerto rico/gi;
+  let puertoRicoRegex = /puerto rico/gi;
+  let hasMagnitude = feature.properties.mag !== 0
+  let hasPuertoRicoId = feature.id.startsWith('pr');
+
   return (
-    regex.test(feature.properties.place) &&
-    feature.properties.mag !== 0
+    (puertoRicoRegex.test(feature.properties.place) || hasPuertoRicoId) && hasMagnitude
   )
 }
 
 module.exports = async function (context, req) {
   const logger = new Logger(context);
-  let locale = req.headers.locale || 'en-us';
+  let locale = req.headers.locale || 'en';
 
   logger.event("initialize", "starting rspr function");
 
@@ -45,9 +47,8 @@ module.exports = async function (context, req) {
 
       logger.event("generate", "creating usgs payload");
 
-      let usgs = json.features.filter(toPuertoRicoOnly).map((feature) => (
-        earthquake('usgs',feature)
-      ));
+      let usgsFeature = (feature) => earthquake('usgs',feature);
+      let usgs = json.features.filter(toPuertoRicoOnly).map(usgsFeature);
 
       res.body.data.attributes.usgs = {
         items: usgs,
