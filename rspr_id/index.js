@@ -38,24 +38,28 @@ module.exports = async function (context, req) {
             // locale = Spanish || English
             // let { id } = req.query;
             // if(!id) throw new Error('id is required')
-            let request = await fetch('http://redsismica.uprm.edu/English/Informe_Sismo/myinfoGeneral.php?id=20210627025712');
+            let request = await fetch(`http://redsismica.uprm.edu/English/Informe_Sismo/myinfoGeneral.php?id=20210627025712`);
             let response = await request.text();
             let html = parser(response);
 
             let table = html.querySelectorAll('table')[3];
             let cells = table.querySelectorAll("td");
             let keys = [];
-            let values = []
+            let values = [];
+            let item = {};
+
             cells.forEach((element, index, array) => {
-                let isKey = element.text.includes(":");
-                // let value = array[index + 1];
-                if(isKey){
-                    keys.push(element.text.toLowerCase().trim().replace(/ /g,"_"))
+                let isValue = index % 2 !== 0;
+                if(isValue){
+                    values.push(element.text.trim())
                 }else{
-                    values.push(element.text)
+                    keys.push(element.text.toLowerCase().trim().replace(/ /g,"_").replace(":",""))
                 }
-            })
-            res.body.data.attributes.rspr.item = {keys,values} ;
+            });
+            // add key:value to item
+            keys.forEach((key,index) => (item[key] = values[index]))
+
+            res.body.data.attributes.rspr.item = item ;
 
         } catch (error) {
             // do some error logging here
