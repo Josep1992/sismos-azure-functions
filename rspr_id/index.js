@@ -1,6 +1,7 @@
 const fetch = require("isomorphic-unfetch");
 const moment = require("moment");
 const parse = require("node-html-parser").parse;
+const { omit, mapper, shape } = require("../lib/object");
 
 const parser = (html) => parse(html, {
     blockTextElements: {
@@ -10,6 +11,15 @@ const parser = (html) => parse(html, {
         pre: true
     }
 })
+
+function replacer(key) {
+    switch (key) {
+        case 'issued_date_and_time_': return 'created_at'
+        case 'tsunami_warning_level': return 'tsunami'
+        case 'region': return 'place'
+        default: return key
+    }
+}
 
 const Logger = require("../infra/logger");
 // const earthquake = require("../common/earthquake");
@@ -50,16 +60,28 @@ module.exports = async function (context, req) {
 
             cells.forEach((element, index, array) => {
                 let isValue = index % 2 !== 0;
-                if(isValue){
+                if (isValue) {
                     values.push(element.text.trim())
-                }else{
-                    keys.push(element.text.toLowerCase().trim().replace(/ /g,"_").replace(":",""))
+                } else {
+                    keys.push(element.text.toLowerCase().trim().replace(/ /g, "_").replace(":", ""))
                 }
             });
             // add key:value to item
-            keys.forEach((key,index) => (item[key] = values[index]))
+            keys.forEach((key, index) => (item[key] = values[index]))
 
-            res.body.data.attributes.rspr.item = item ;
+            let formattedItem = mapper(
+                omit(item, ["distances", "estimated_maximum_intensity"]),
+                replacer
+            );
+
+            let expectedProperties = ["date", "magnitude", "location", "depth", "id", "place", "created_at"];
+            let { isValid } = shape(formattedItem, expectedProperties)
+
+            if(!isValid){
+                throw new Error("Data is not valid");
+            }
+
+            res.body.data.attributes.rspr.item = formattedItem;
 
         } catch (error) {
             // do some error logging here
