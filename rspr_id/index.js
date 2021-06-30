@@ -13,23 +13,18 @@ const parser = (html) => parse(html, {
 })
 
 function replacer(key) {
-    // TODO verificar los acentos en Spanish request
     switch (key) {
         case "profundidad": return "depth";
         case "magnitud": return "magnitude";
         case "distancias": return "distances";
         case "intensidad_maxima_estimada": return "estimated_maximum_intensity";
         case "localización": return "location";
-
         case "fecha_y_hora_de_emisión":
         case 'issued_date_and_time_': return 'created_at';
-
         case 'nivel_de_alerta_de_tsunami':
         case 'tsunami_warning_level': return 'tsunami';
-
         case 'región':
         case 'region': return 'place';
-
         case "date":
         case 'fecha': return "date"
         default: return key
@@ -44,7 +39,12 @@ const Logger = require("../infra/logger");
 
 module.exports = async function (context, req) {
     const logger = new Logger(context);
+
     let locale = req.headers.locale || 'en-us';
+    let languages = { 'en-us': "English", 'es-us': "Spanish" };
+    // default to English if no locale
+    let language = !(locale in languages) ? languages["en-us"] : languages[locale];
+    let { id } = req.query; //20210627025712
 
     logger.event("initialize", "starting rspr:id function");
 
@@ -60,10 +60,9 @@ module.exports = async function (context, req) {
         try {
             logger.event("request", "getting rspr:id data");
 
-            // locale = Spanish || English
-            // let { id } = req.query;
-            // if(!id) throw new Error('id is required')
-            let request = await fetch(`http://redsismica.uprm.edu/Spanish/Informe_Sismo/myinfoGeneral.php?id=20210627025712`);
+            if (!id) throw new Error('id is required');
+
+            let request = await fetch(`http://redsismica.uprm.edu/${language}/Informe_Sismo/myinfoGeneral.php?id=${id}`);
             let response = await request.text();
             let html = parser(response);
 
@@ -84,13 +83,13 @@ module.exports = async function (context, req) {
             // add key:value to item
             keys.forEach((key, index) => (item[key] = values[index]))
 
-            item =  omit(item, ["distances", "estimated_maximum_intensity"]);
-            let formattedItem = mapper(item,replacer);
+            item = omit(item, ["distances", "estimated_maximum_intensity"]);
+            let formattedItem = mapper(item, replacer);
 
             let expectedProperties = ["date", "magnitude", "location", "depth", "id", "place", "created_at"];
             let { isValid } = shape(formattedItem, expectedProperties)
 
-            if(!isValid){
+            if (!isValid) {
                 throw new Error("Data is not valid");
                 // we could instead fetch all the earthquakes and filter to find @id
                 // and return it maybe?
