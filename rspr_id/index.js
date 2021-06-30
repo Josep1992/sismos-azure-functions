@@ -81,6 +81,7 @@ module.exports = async function (context, req) {
                 throw new Error("Data is not valid");
             }
 
+            // TODO make sure properties stay the same regardless of language change
             res.body.data.attributes.rspr.item = formattedItem;
 
         } catch (error) {
