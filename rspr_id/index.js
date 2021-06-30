@@ -13,10 +13,23 @@ const parser = (html) => parse(html, {
 })
 
 function replacer(key) {
+    // TODO verificar los acentos en Spanish request
     switch (key) {
-        case 'issued_date_and_time_': return 'created_at'
-        case 'tsunami_warning_level': return 'tsunami'
-        case 'region': return 'place'
+        case "profundidad": return "depth";
+        case "magnitud": return "magnitude";
+        case "distancias": return "distances";
+        case "intensidad_maxima_estimada": return "estimated_maximum_intensity";
+        case "localizacion": return "location";
+
+        case "fecha_y_hora_de_emision_":
+        case 'issued_date_and_time_': return 'created_at';
+
+        case 'nivel_de_alerta_de_tsunami':
+        case 'tsunami_warning_level': return 'tsunami';
+        case 'region': return 'place';
+
+        case "date":
+        case 'fecha': return "date"
         default: return key
     }
 }
@@ -82,6 +95,7 @@ module.exports = async function (context, req) {
             }
 
             // TODO make sure properties stay the same regardless of language change
+            // TODO this changes only work for en if the language is es it will break
             res.body.data.attributes.rspr.item = formattedItem;
 
         } catch (error) {
