@@ -21,12 +21,14 @@ function replacer(key) {
         case "intensidad_maxima_estimada": return "estimated_maximum_intensity";
         case "localización": return "location";
 
-        case "fecha_y_hora_de_emisión_":
+        case "fecha_y_hora_de_emisión":
         case 'issued_date_and_time_': return 'created_at';
 
         case 'nivel_de_alerta_de_tsunami':
         case 'tsunami_warning_level': return 'tsunami';
-        case 'región': return 'place';
+
+        case 'región':
+        case 'region': return 'place';
 
         case "date":
         case 'fecha': return "date"
@@ -61,7 +63,7 @@ module.exports = async function (context, req) {
             // locale = Spanish || English
             // let { id } = req.query;
             // if(!id) throw new Error('id is required')
-            let request = await fetch(`http://redsismica.uprm.edu/English/Informe_Sismo/myinfoGeneral.php?id=20210627025712`);
+            let request = await fetch(`http://redsismica.uprm.edu/Spanish/Informe_Sismo/myinfoGeneral.php?id=20210627025712`);
             let response = await request.text();
             let html = parser(response);
 
@@ -82,20 +84,18 @@ module.exports = async function (context, req) {
             // add key:value to item
             keys.forEach((key, index) => (item[key] = values[index]))
 
-            let formattedItem = mapper(
-                omit(item, ["distances", "estimated_maximum_intensity"]),
-                replacer
-            );
+            item =  omit(item, ["distances", "estimated_maximum_intensity"]);
+            let formattedItem = mapper(item,replacer);
 
             let expectedProperties = ["date", "magnitude", "location", "depth", "id", "place", "created_at"];
             let { isValid } = shape(formattedItem, expectedProperties)
 
             if(!isValid){
                 throw new Error("Data is not valid");
+                // we could instead fetch all the earthquakes and filter to find @id
+                // and return it maybe?
             }
 
-            // TODO make sure properties stay the same regardless of language change
-            // TODO this changes only work for en if the language is es it will break
             res.body.data.attributes.rspr.item = formattedItem;
 
         } catch (error) {
