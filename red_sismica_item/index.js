@@ -32,10 +32,6 @@ function replacer(key) {
 }
 
 const Logger = require("../infra/logger");
-// const earthquake = require("../common/earthquake");
-
-// id:earthquake endpoint
-// http://redsismica.uprm.edu/English/Informe_Sismo/myinfoGeneral.php?id=20210627025712&lat=17.9448&lon=-67.1053&prof=11&mag=3.20_Md
 
 module.exports = async function (context, req) {
     const logger = new Logger(context);
