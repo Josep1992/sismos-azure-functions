@@ -19,14 +19,14 @@ function replacer(key) {
         case "magnitud": return "magnitude";
         case "distancias": return "distances";
         case "intensidad_maxima_estimada": return "estimated_maximum_intensity";
-        case "localizacion": return "location";
+        case "localización": return "location";
 
-        case "fecha_y_hora_de_emision_":
+        case "fecha_y_hora_de_emisión_":
         case 'issued_date_and_time_': return 'created_at';
 
         case 'nivel_de_alerta_de_tsunami':
         case 'tsunami_warning_level': return 'tsunami';
-        case 'region': return 'place';
+        case 'región': return 'place';
 
         case "date":
         case 'fecha': return "date"
