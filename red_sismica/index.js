@@ -10,17 +10,17 @@ function filterByRange({ created_at }, range) {
     let end = undefined;
 
     if (range === "all_day") {
-        start = moment(new Date).subtract('1','days')
+        start = moment(new Date).subtract('1', 'days')
         end = moment(new Date)
     }
 
     if (range === "all_week") {
-        start = moment(new Date).subtract('7','days')
+        start = moment(new Date).subtract('7', 'days')
         end = moment(Date.now())
     }
 
     if (range === "all_month") {
-        start = moment(Date.now()).subtract('30','days')
+        start = moment(Date.now()).subtract('30', 'days')
         end = moment(Date.now());
     }
 
@@ -53,9 +53,12 @@ module.exports = async function (context, req) {
             if (datasets) {
                 logger.event("generate", "creating rspr payload");
 
-                let rspr = datasets.trim().split("\n").map((feature) => (
-                    earthquake('rspr', feature)
-                )).filter((feature) => filterByRange(feature,range))
+                let rspr = datasets
+                    .trim()
+                    .split("\n")
+                    .map((feature) => earthquake('rspr', feature))
+                    .filter((feature) => filterByRange(feature, range))
+
                 res.body.data.attributes.rspr = {
                     items: rspr,
                     length: rspr.length
