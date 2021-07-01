@@ -1,17 +1,37 @@
 const fetch = require("isomorphic-unfetch");
-const moment = require("moment")
-
+const moment = require("../infra/moment")
 const Logger = require("../infra/logger");
 const earthquake = require("../common/earthquake");
 
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
 
-// id:earthquake endpoint
-// http://redsismica.uprm.edu/English/Informe_Sismo/myinfoGeneral.php?id=20210627025712&lat=17.9448&lon=-67.1053&prof=11&mag=3.20_Md
+function filterByRange({ created_at }, range) {
+    let start = undefined;
+    let end = undefined;
+
+    if (range === "all_day") {
+        start = moment(new Date).subtract('1','days')
+        end = moment(new Date)
+    }
+
+    if (range === "all_week") {
+        start = moment(new Date).subtract('7','days')
+        end = moment(Date.now())
+    }
+
+    if (range === "all_month") {
+        start = moment(Date.now()).subtract('30','days')
+        end = moment(Date.now());
+    }
+
+    return moment(created_at).isBetween(start, end)
+}
+
 
 module.exports = async function (context, req) {
     const logger = new Logger(context);
     let locale = req.headers.locale || 'en-us';
+    let { range = 'all_month' } = req.query // options are: all_day, all_month, all_week
 
     logger.event("initialize", "starting rspr function");
 
@@ -34,8 +54,8 @@ module.exports = async function (context, req) {
                 logger.event("generate", "creating rspr payload");
 
                 let rspr = datasets.trim().split("\n").map((feature) => (
-                    earthquake('rspr',feature)
-                ));
+                    earthquake('rspr', feature)
+                )).filter((feature) => filterByRange(feature,range))
                 res.body.data.attributes.rspr = {
                     items: rspr,
                     length: rspr.length

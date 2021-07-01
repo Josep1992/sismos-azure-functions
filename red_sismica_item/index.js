@@ -1,6 +1,6 @@
 const fetch = require("isomorphic-unfetch");
-const moment = require("moment");
 const parse = require("node-html-parser").parse;
+const Logger = require("../infra/logger");
 const { omit, mapper, shape } = require("../lib/object");
 
 const parser = (html) => parse(html, {
@@ -31,7 +31,6 @@ function replacer(key) {
     }
 }
 
-const Logger = require("../infra/logger");
 
 module.exports = async function (context, req) {
     const logger = new Logger(context);
@@ -58,7 +57,9 @@ module.exports = async function (context, req) {
 
             if (!id) throw new Error('id is required');
 
-            let request = await fetch(`http://redsismica.uprm.edu/${language}/Informe_Sismo/myinfoGeneral.php?id=${id}`);
+            let request = await fetch(
+                `http://redsismica.uprm.edu/${language}/Informe_Sismo/myinfoGeneral.php?id=${id}`
+            );
             let response = await request.text();
             let html = parser(response);
 

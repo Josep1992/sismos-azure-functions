@@ -1,16 +1,12 @@
 const fetch = require("isomorphic-unfetch");
-const moment = require("moment")
-
 const Logger = require("../infra/logger");
 const earthquake = require("../common/earthquake")
 
 // all_day, all_month, all_week
-// have to implement this endpoints on the rspr azure function
+// have to implement this endpoints on the red_sismica azure function
 const USGS_ENDPOINT = (endpoint) => (
   `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${endpoint}.geojson?minlongitude=15&maxlongitude=20`
 );
-
-// U.S. Geological Survey
 
 function toPuertoRicoOnly(feature) {
   let puertoRicoRegex = /puerto rico/gi;
@@ -25,7 +21,7 @@ function toPuertoRicoOnly(feature) {
 module.exports = async function (context, req) {
   const logger = new Logger(context);
   let locale = req.headers.locale || 'en';
-  let {range = 'all_month'} = req.query // options are: all_day, all_month, all_week
+  let { range = 'all_month' } = req.query // options are: all_day, all_month, all_week
 
   logger.event("initialize", "starting rspr function");
 
@@ -50,7 +46,7 @@ module.exports = async function (context, req) {
 
       logger.event("generate", "creating usgs payload");
 
-      let usgsFeature = (feature) => earthquake('usgs',feature);
+      let usgsFeature = (feature) => earthquake('usgs', feature);
       let usgs = json.features.filter(toPuertoRicoOnly).map(usgsFeature);
 
       res.body.data.attributes.usgs = {

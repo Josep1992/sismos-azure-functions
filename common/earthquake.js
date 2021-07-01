@@ -1,4 +1,4 @@
-const moment = require("moment");
+const moment = require("../infra/moment")
 const regions = require("../fixtures/regions");
 const map = require("./map");
 

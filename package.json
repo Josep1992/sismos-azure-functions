@@ -9,6 +9,7 @@
   "dependencies": {
     "isomorphic-unfetch": "^3.1.0",
     "moment": "^2.29.1",
+    "moment-range": "^4.0.2",
     "node-html-parser": "^3.3.6"
   },
   "devDependencies": {}
