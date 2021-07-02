@@ -93,17 +93,18 @@ module.exports = async function (context, req) {
                     }
 
                     res.body.data.attributes.rspr.item = formattedItem;
-                } else {
-                    //  fallback to fetch all rspr features and find by id
-                    // have to set endpoint env variable for dev and prod
-                    let res = await fetch("http://localhost:7071/api/red_sismica?range=all");
-                    let result = await res.json();
-
-                    let { data: { attributes: { rspr } } } = result;
-                    let item = rspr.items.find((feature) => feature.id === id);
-
-                    res.body.data.attributes.rspr.item = item
                 }
+
+            }
+
+            if (!html) {
+                //  fallback to fetch all rspr features and find by id
+                // have to set endpoint env variable for dev and prod
+                let response = await await fetch("http://localhost:7071/api/red_sismica?range=all");
+                let { data } = await response.json();
+                let item = data.attributes.rspr.items.find((feature) => feature.id === id);
+
+                res.body.data.attributes.rspr.item = item
 
             }
 
