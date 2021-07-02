@@ -25,7 +25,7 @@ module.exports = function earthquake(source, data) {
         },                             // index 0 = en index 1 = es
         place: !regions[code] ? null : regions[code]["name"][0],
         // authorize api
-        map: map({ latitude, longitude })
+        // map: map({ latitude, longitude })
       };
     }
   }
@@ -48,7 +48,7 @@ module.exports = function earthquake(source, data) {
     },
     place,
     // authorize api
-    map: map({ latitude, longitude })
+    // map: map({ latitude, longitude })
   };
 
 }

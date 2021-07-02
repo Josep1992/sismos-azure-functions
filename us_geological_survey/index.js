@@ -2,8 +2,10 @@ const fetch = require("isomorphic-unfetch");
 const Logger = require("../infra/logger");
 const earthquake = require("../common/earthquake")
 
-// all_day, all_month, all_week
-// have to implement this endpoints on the red_sismica azure function
+
+// single endpoint example
+// detail: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/detail/pr2021152000.geojson',
+
 const USGS_ENDPOINT = (endpoint) => (
   `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${endpoint}.geojson?minlongitude=15&maxlongitude=20`
 );

@@ -8,6 +8,7 @@ const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalog
 function filterByRange({ created_at }, range) {
     let start = undefined;
     let end = undefined;
+    let now = Date.now();
 
     if (range === "all_day") {
         start = moment(new Date).subtract('1', 'days')
@@ -16,12 +17,12 @@ function filterByRange({ created_at }, range) {
 
     if (range === "all_week") {
         start = moment(new Date).subtract('7', 'days')
-        end = moment(Date.now())
+        end = moment(now)
     }
 
     if (range === "all_month") {
         start = moment(Date.now()).subtract('30', 'days')
-        end = moment(Date.now());
+        end = moment(now);
     }
 
     return moment(created_at).isBetween(start, end)
@@ -57,7 +58,10 @@ module.exports = async function (context, req) {
                     .trim()
                     .split("\n")
                     .map((feature) => earthquake('rspr', feature))
-                    .filter((feature) => filterByRange(feature, range))
+
+                if(range !== "all"){
+                    rspr = rspr.filter((feature) => filterByRange(feature, range));
+                }
 
                 res.body.data.attributes.rspr = {
                     items: rspr,

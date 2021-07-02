@@ -39,7 +39,7 @@ module.exports = async function (context, req) {
     let languages = { 'en-us': "English", 'es-us': "Spanish" };
     // default to English if no locale
     let language = !(locale in languages) ? languages["en-us"] : languages[locale];
-    let { id } = req.query; //20210627025712
+    let { id = 20210701214258 } = req.query; //
 
     logger.event("initialize", "starting rspr:id function");
 
@@ -63,36 +63,51 @@ module.exports = async function (context, req) {
             let response = await request.text();
             let html = parser(response);
 
-            let table = html.querySelectorAll('table')[3];
-            let cells = table.querySelectorAll("td");
-            let keys = [];
-            let values = [];
-            let item = {};
+            if (html) {
+                let table = html.querySelectorAll('table')[3];
+                let cells = table ? table.querySelectorAll("td") : null;
+                if (table && cells) {
+                    let keys = [];
+                    let values = [];
+                    let item = {};
 
-            cells.forEach((element, index, array) => {
-                let isValue = index % 2 !== 0;
-                if (isValue) {
-                    values.push(element.text.trim())
+                    cells.forEach((element, index, array) => {
+                        let isValue = index % 2 !== 0;
+                        if (isValue) {
+                            values.push(element.text.trim())
+                        } else {
+                            keys.push(element.text.toLowerCase().trim().replace(/ /g, "_").replace(":", ""))
+                        }
+                    });
+                    // add key:value to item
+                    keys.forEach((key, index) => (item[key] = values[index]))
+
+                    item = omit(item, ["distances", "estimated_maximum_intensity"]);
+                    let formattedItem = mapper(item, replacer);
+
+                    let expectedProperties = ["date", "magnitude", "location", "depth", "id", "place", "created_at"];
+                    let { isValid } = shape(formattedItem, expectedProperties)
+
+                    if (!isValid) {
+                        throw new Error("Data is not valid");
+                    }
+
+                    res.body.data.attributes.rspr.item = formattedItem;
                 } else {
-                    keys.push(element.text.toLowerCase().trim().replace(/ /g, "_").replace(":", ""))
+                    //  fallback to fetch all rspr features and find by id
+                    // have to set endpoint env variable for dev and prod
+                    let res = await fetch("http://localhost:7071/api/red_sismica?range=all");
+                    let result = await res.json();
+
+                    let { data: { attributes: { rspr } } } = result;
+                    let item = rspr.items.find((feature) => feature.id === id);
+
+                    res.body.data.attributes.rspr.item = item
                 }
-            });
-            // add key:value to item
-            keys.forEach((key, index) => (item[key] = values[index]))
 
-            item = omit(item, ["distances", "estimated_maximum_intensity"]);
-            let formattedItem = mapper(item, replacer);
-
-            let expectedProperties = ["date", "magnitude", "location", "depth", "id", "place", "created_at"];
-            let { isValid } = shape(formattedItem, expectedProperties)
-
-            if (!isValid) {
-                throw new Error("Data is not valid");
-                // we could instead fetch all the earthquakes and filter to find @id
-                // and return it maybe?
             }
 
-            res.body.data.attributes.rspr.item = formattedItem;
+
 
         } catch (error) {
             // do some error logging here
