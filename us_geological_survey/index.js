@@ -30,6 +30,7 @@ module.exports = async function (context, req) {
   let res = {
     status: 200,
     body: {
+      type: 'usgs',
       data: { attributes: { usgs: { items: [], length: 0 } } },
       error: null,
     }

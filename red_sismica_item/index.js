@@ -46,6 +46,7 @@ module.exports = async function (context, req) {
     let res = {
         status: 200,
         body: {
+            type: 'rspr',
             data: { attributes: { rspr: { item: {} } } },
             error: null,
         }
@@ -108,14 +109,12 @@ module.exports = async function (context, req) {
 
             }
 
-
-
         } catch (error) {
             // do some error logging here
             logger.event("error", error.message);
 
             res.body.error = error.message;
-            res.body.status = 500;
+            res.body.status = 500
         }
     }
 

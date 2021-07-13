@@ -6,23 +6,17 @@ const earthquake = require("../common/earthquake");
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
 
 function filterByRange({ created_at }, range) {
-    let start = undefined;
-    let end = undefined;
-    let now = Date.now();
+    let start = moment(new Date);
+    let end = moment(Date.now());
 
-    if (range === "all_day") {
-        start = moment(new Date).subtract('1', 'days')
-        end = moment(new Date)
+    let queries = {
+        all_day: null,
+        all_week: '7',
+        all_month: '30'
     }
 
-    if (range === "all_week") {
-        start = moment(new Date).subtract('7', 'days')
-        end = moment(now)
-    }
-
-    if (range === "all_month") {
-        start = moment(Date.now()).subtract('30', 'days')
-        end = moment(now);
+    if(queries[range]){
+        start = start.subtract(queries[range],'days')
     }
 
     return moment(created_at).isBetween(start, end)
@@ -32,13 +26,14 @@ function filterByRange({ created_at }, range) {
 module.exports = async function (context, req) {
     const logger = new Logger(context);
     let locale = req.headers.locale || 'en-us';
-    let { range = 'all_month' } = req.query // options are: all_day, all_month, all_week
+    let { range = 'all_day' } = req.query // options are: all_day, all_month, all_week
 
     logger.event("initialize", "starting rspr function");
 
     let res = {
         status: 200,
         body: {
+            type: 'rspr',
             data: { attributes: { rspr: { items: [], length: 0 } } },
             error: null,
         }
@@ -59,9 +54,10 @@ module.exports = async function (context, req) {
                     .split("\n")
                     .map((feature) => earthquake('rspr', feature))
 
-                if(range !== "all"){
+                if(range !== "all_day"){
                     rspr = rspr.filter((feature) => filterByRange(feature, range));
                 }
+
 
                 res.body.data.attributes.rspr = {
                     items: rspr,
