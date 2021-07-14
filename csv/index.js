@@ -24,6 +24,7 @@ module.exports = async function (context, req) {
       logger.event("response", "sending back csv file");
 
       context.res.header('Content-Type', 'text/csv');
+      context.res.header('attachment; filename=earthquakes.csv')
       return context.res.send(csv);
     } catch (error) {
       // do some error logging here
