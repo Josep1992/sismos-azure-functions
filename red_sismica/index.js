@@ -2,6 +2,7 @@ const fetch = require("isomorphic-unfetch");
 const moment = require("../infra/moment")
 const Logger = require("../infra/logger");
 const earthquake = require("../common/earthquake");
+const { isGET } = require("../infra/http");
 
 const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
 
@@ -15,8 +16,8 @@ function filterByRange({ created_at }, range) {
         all_month: '30'
     }
 
-    if(queries[range]){
-        start = start.subtract(queries[range],'days')
+    if (queries[range]) {
+        start = start.subtract(queries[range], 'days')
     }
 
     return moment(created_at).isBetween(start, end)
@@ -39,39 +40,42 @@ module.exports = async function (context, req) {
         }
     };
 
-    if (req.method === "GET") {
-        try {
-            logger.event("request", "getting rspr data");
+    if (!isGET(req)) {
+        // maybe I don't need this
+        throw new Error(`${req.method} is not supported`)
+    }
 
-            let request = await fetch(RSPR_ENDPOINT);
-            let datasets = await request.text();
+    try {
+        logger.event("request", "getting rspr data");
 
-            if (datasets) {
-                logger.event("generate", "creating rspr payload");
+        let request = await fetch(RSPR_ENDPOINT);
+        let datasets = await request.text();
 
-                let rspr = datasets
-                    .trim()
-                    .split("\n")
-                    .map((feature) => earthquake('rspr', feature))
+        if (datasets) {
+            logger.event("generate", "creating rspr payload");
 
-                if(range !== "all_day"){
-                    rspr = rspr.filter((feature) => filterByRange(feature, range));
-                }
+            let rspr = datasets
+                .trim()
+                .split("\n")
+                .map((feature) => earthquake('rspr', feature))
 
-
-                res.body.data.attributes.rspr = {
-                    items: rspr,
-                    length: rspr.length
-                };
+            if (range !== "all_day") {
+                rspr = rspr.filter((feature) => filterByRange(feature, range));
             }
 
-        } catch (error) {
-            // do some error logging here
-            logger.event("error", error.message);
 
-            res.body.error = error.message;
-            res.body.status = 500;
+            res.body.data.attributes.rspr = {
+                items: rspr,
+                length: rspr.length
+            };
         }
+
+    } catch (error) {
+        // do some error logging here
+        logger.event("error", error.message);
+
+        res.body.error = error.message;
+        res.body.status = 500;
     }
 
     logger.event("response", "sending back rspr response");
