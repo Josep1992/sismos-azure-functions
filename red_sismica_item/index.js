@@ -39,10 +39,11 @@ module.exports = async function (context, req) {
     let languages = { 'en-us': "English", 'es-us': "Spanish" };
     // default to English if no locale
     let language = !(locale in languages) ? languages["en-us"] : languages[locale];
-    let { id = 20210701214258 } = req.query; //
+    let { id = 20210701214258 } = req.query; // remember to remove id
 
     logger.event("initialize", "starting rspr:id function");
 
+    // remove data.attributes.rspr.item --> data.attributes.item
     let res = {
         status: 200,
         body: {
