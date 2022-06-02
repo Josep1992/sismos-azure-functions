@@ -3,8 +3,8 @@ const moment = require("../infra/moment")
 const Logger = require("../infra/logger");
 const earthquake = require("../common/earthquake");
 const { isGET } = require("../infra/http");
-
-const RSPR_ENDPOINT = 'http://redsismica.uprm.edu/Data/prsn/EarlyWarning/Catalogue.txt';
+   
+const RSPR_ENDPOINT = 'https://redsismica.uprm.edu/data/oldcat/EarlyWarning/Catalogue.txt';
 
 function filterByRange({ created_at }, range) {
     let start = moment(new Date);
